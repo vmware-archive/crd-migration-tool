@@ -1,0 +1,27 @@
+# Copyright 2019 VMware, Inc. All Rights Reserved.
+# SPDX-License-Identifier: BSD-2-Clause
+
+builds:
+  - main: ./cmd/crd-migrator/main.go
+    binary: crd-migrator
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+archive:
+  name_template: "{{ .ProjectName }}-{{ .Tag }}-{{ .Os }}-{{ .Arch }}"
+  files:
+    - LICENSE
+    - NOTICE
+    - open_source_licenses.txt
+checksum:
+  name_template: 'CHECKSUM'
+release:
+  github:
+    owner: vmware
+    name: crd-migration-tool
+  draft: true
