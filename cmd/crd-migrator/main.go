@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
@@ -15,8 +16,9 @@ import (
 
 func main() {
 	options := internal.Options{
-		QPS:   float32(50.0),
-		Burst: 100,
+		LogLevel: logrus.InfoLevel.String(),
+		QPS:      float32(50.0),
+		Burst:    100,
 	}
 
 	pflag.StringVar(&options.LogLevel, "log-level", options.LogLevel, "log level")
