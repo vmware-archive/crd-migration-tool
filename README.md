@@ -234,19 +234,9 @@ to this tool to delete items across all namespaces from the old API group.
 
 #### Instructions
 
-1. Download the source:
-    ```shell
-    go get github.com/vmware/crd-migration-tool
-    ```
+1. Clone this repository to your computer
 
-1. Change your working directory to the root directory of the project:
-    ```shell
-    # if using default go workspace directory
-    cd $HOME/go/src/github.com/vmware/crd-migration-tool 
-    
-    # if using a custom GOPATH
-    cd $GOPATH/src/github.com/vmware/crd-migration-tool
-    ```
+1. Change your working directory to the root directory of the project
 
 1. Build the binary:
     ```shell
