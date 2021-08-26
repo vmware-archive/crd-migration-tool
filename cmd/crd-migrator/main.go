@@ -20,7 +20,7 @@ func main() {
 		QPS:      float32(50.0),
 		Burst:    100,
 	}
-	pflag.StringVar(&options.Resources, "resources", options.LogLevel, "limit resource for migration,use plural name,separator:, e.g: pods,jobs")
+	pflag.StringVar(&options.Resources, "resources", options.LogLevel, "limit resource for migration,use plural name,separator is (e.g: pods,jobs)")
 	pflag.StringVar(&options.LogLevel, "log-level", options.LogLevel, "log level")
 	pflag.StringVar(&options.Kubeconfig, "kubeconfig", options.Kubeconfig, "path to kubeconfig file")
 	pflag.StringVar(&options.Context, "context", options.Context, "specific context to use in the kubeconfig file")
