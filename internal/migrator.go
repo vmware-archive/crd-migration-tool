@@ -23,6 +23,7 @@ import (
 // Options is the set of configurable parameters
 // for a Migrator.
 type Options struct {
+	Resources              string
 	LogLevel               string
 	Kubeconfig             string
 	Context                string
@@ -170,6 +171,55 @@ func (m *Migrator) MigrateAllResources() {
 	// process any remaining resources not listed in --update-owner-refs
 	for _, resource := range serverResourcesByName {
 		m.migrateOneResource(resource)
+	}
+}
+
+func (m *Migrator) MigrateSomeResources(resourceSet stringSet) {
+	serverResources, err := m.discoveryClient.ServerResourcesForGroupVersion(m.oldGroupVersion.String())
+	if err != nil {
+		m.log.WithError(err).Fatal("Error retrieving server resources for old group version")
+	}
+
+	serverResourcesByName := map[string]metav1.APIResource{}
+
+	for _, resource := range serverResources.APIResources {
+		serverResourcesByName[resource.Name] = resource
+	}
+
+	resourcePriorities, err := calculateResourcePriorities(m.updateOwnerRefMappings)
+	if err != nil {
+		m.log.Fatal("--update-owner-refs contains a cycle")
+	}
+
+	// check all the --update-owner-refs values to make sure they're valid; if not, error now, before
+	// doing any real work.
+	for _, resourceName := range resourcePriorities {
+		if _, found := serverResourcesByName[resourceName]; !found {
+			m.log.Fatalf("unable to find resource %q from --update-owner-refs", resourceName)
+		}
+	}
+
+	// process the sorted list of prioritized resources from --update-owner-refs first
+	for _, resourceName := range resourcePriorities {
+		resource := serverResourcesByName[resourceName]
+
+		// if it's a parent, register it
+		if _, ok := m.updateOwnerRefMappings[resourceName]; ok {
+			m.createdItemsTracker.registerResource(resource)
+		}
+		if nil == resourceSet || resourceSet.has(resourceName) {
+			m.migrateOneResource(resource)
+		}
+
+		// delete the resource from the map so we won't process it again in the 2nd for loop
+		delete(serverResourcesByName, resourceName)
+	}
+
+	// process any remaining resources not listed in --update-owner-refs
+	for _, resource := range serverResourcesByName {
+		if nil == resourceSet || resourceSet.has(resource.Name) {
+			m.migrateOneResource(resource)
+		}
 	}
 }
 
