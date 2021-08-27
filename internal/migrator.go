@@ -51,6 +51,7 @@ type Migrator struct {
 	annotationMappings     map[string]string
 	updateOwnerRefMappings map[string]string
 	createdItemsTracker    *createdItemsTracker
+	resourceSet            stringSet
 }
 
 // NewMigrator constructs and returns a *Migrator from
@@ -70,6 +71,8 @@ func NewMigrator(options Options) *Migrator {
 	crdGroupVersionResource := parseGroupVersionOrDie("apiextensions.k8s.io/v1beta1").WithResource("customresourcedefinitions")
 	crdClient := dynamicClient.Resource(crdGroupVersionResource)
 
+	resourceSet := New(options.Resources, ",")
+
 	return &Migrator{
 		log:                    log,
 		discoveryClient:        discoveryClient,
@@ -82,6 +85,7 @@ func NewMigrator(options Options) *Migrator {
 		annotationMappings:     parseMappings("annotation", options.AnnotationMappings),
 		updateOwnerRefMappings: parseMappings("update-owner-refs", options.UpdateOwnerRefMappings),
 		createdItemsTracker:    newCreatedItemsTracker(log, options.OldGroupVersion, options.NewGroupVersion),
+		resourceSet:            resourceSet,
 	}
 }
 
@@ -174,7 +178,7 @@ func (m *Migrator) MigrateAllResources() {
 	}
 }
 
-func (m *Migrator) MigrateSomeResources(resourceSet stringSet) {
+func (m *Migrator) MigrateSomeResources() {
 	serverResources, err := m.discoveryClient.ServerResourcesForGroupVersion(m.oldGroupVersion.String())
 	if err != nil {
 		m.log.WithError(err).Fatal("Error retrieving server resources for old group version")
@@ -207,7 +211,7 @@ func (m *Migrator) MigrateSomeResources(resourceSet stringSet) {
 		if _, ok := m.updateOwnerRefMappings[resourceName]; ok {
 			m.createdItemsTracker.registerResource(resource)
 		}
-		if nil == resourceSet || resourceSet.has(resourceName) {
+		if nil == m.resourceSet ||  m.resourceSet.has(resourceName) {
 			m.migrateOneResource(resource)
 		}
 
@@ -217,7 +221,7 @@ func (m *Migrator) MigrateSomeResources(resourceSet stringSet) {
 
 	// process any remaining resources not listed in --update-owner-refs
 	for _, resource := range serverResourcesByName {
-		if nil == resourceSet || resourceSet.has(resource.Name) {
+		if nil ==  m.resourceSet ||  m.resourceSet.has(resource.Name) {
 			m.migrateOneResource(resource)
 		}
 	}

@@ -4,8 +4,11 @@
 package main
 
 import (
+	context2 "context"
 	"fmt"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"os"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
@@ -39,9 +42,7 @@ func main() {
 		pflag.PrintDefaults()
 		os.Exit(0)
 	}
-	resourceSet := internal.New(options.Resources,",")
-	if nil == resourceSet{
-		internal.NewMigrator(options).MigrateAllResources()
-	}
-	internal.NewMigrator(options).MigrateSomeResources(resourceSet)
+	context := context2.Background()
+	go wait.Until(internal.NewMigrator(options).MigrateSomeResources, 2 * time.Second, context.Done())
+	<-context.Done()
 }
