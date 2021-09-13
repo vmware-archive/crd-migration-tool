@@ -270,6 +270,7 @@ func (m *Migrator) validateNewCRD(log logrus.FieldLogger, resource metav1.APIRes
 	return nil
 }
 
+
 func (m *Migrator) migrateOneResourceInstance(logger logrus.FieldLogger, resourceName string, item *unstructured.Unstructured) error {
 	newGVR := m.newGroupVersion.WithResource(resourceName)
 	originalNS := item.GetNamespace()
