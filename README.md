@@ -1,3 +1,5 @@
+#VMware has ended active development of this project, this repository will no longer be updated
+
 # Kubernetes CustomResourceDefinition Migration Tool
 
 [![Build Status](https://travis-ci.org/vmware/crd-migration-tool.svg?branch=master)](https://travis-ci.org/vmware/crd-migration-tool)
