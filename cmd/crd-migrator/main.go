@@ -4,8 +4,11 @@
 package main
 
 import (
+	context2 "context"
 	"fmt"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"os"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
@@ -20,7 +23,7 @@ func main() {
 		QPS:      float32(50.0),
 		Burst:    100,
 	}
-
+	pflag.StringVar(&options.Resources, "resources", options.LogLevel, "limit resource for migration,use plural name,separator is ',' (e.g: pods,jobs)")
 	pflag.StringVar(&options.LogLevel, "log-level", options.LogLevel, "log level")
 	pflag.StringVar(&options.Kubeconfig, "kubeconfig", options.Kubeconfig, "path to kubeconfig file")
 	pflag.StringVar(&options.Context, "context", options.Context, "specific context to use in the kubeconfig file")
@@ -39,6 +42,7 @@ func main() {
 		pflag.PrintDefaults()
 		os.Exit(0)
 	}
-
-	internal.NewMigrator(options).MigrateAllResources()
+	context := context2.Background()
+	go wait.Until(internal.NewMigrator(options).MigrateSomeResources, 2 * time.Second, context.Done())
+	<-context.Done()
 }
